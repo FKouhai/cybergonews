@@ -6,14 +6,16 @@ import (
 	"math/rand"
 	"github.com/bwmarrin/discordgo"
 	"github.com/gocolly/colly"
-	//"github.com/mmcdole/gofeed"
-	//"golang.org/x/text/message"
 )
 var BotId string
 var goBot *discordgo.Session
-
+type Site struct {
+  domain string
+  pattern string
+  visit string
+}
 func Start() {
-  goBot, err := discordgo.New("Bot " + config.Token)
+  goBot, err := discordgo.New("Bot " + config.Token) //starting the bot
   if err != nil {
     fmt.Println(err.Error(), "Error at startup")
     return
@@ -34,34 +36,54 @@ func Start() {
 }
 
 func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
+  cyberhoot := new(Site)
+  cyberhoot.domain = "cyberhoot.com"
+  cyberhoot.pattern = ".entry-title"
+  cyberhoot.visit = "https://cyberhoot.com/category/blog/"
+  darkReading := new(Site)
+  darkReading.domain = "www.darkreading.com"
+  darkReading.pattern = ".article-detail"
+  darkReading.visit = "https://www.darkreading.com/"
+  techRep := new(Site)
+  techRep.domain = "www.techrepublic.com"
+  //techRep.pattern = ".title"
+  techRep.pattern = ".title"
+  techRep.visit = "https://www.techrepublic.com/topic/security/"
+  fmt.Println(cyberhoot)
   if m.Author.ID == BotId {
     return
   }
-  if m.Content == "~"{
-    _, _ = s.ChannelMessageSend(m.ChannelID, "in order to run the bot you need to specify a media outlet(cyberhoot)")
+  if m.Content == "~ help"{
+    _, _ = s.ChannelMessageSend(m.ChannelID, "in order to run the bot you need to specify a media outlet(cyberhoot, dark-reader, tech-rep)")
   }
   if m.Content == "~ cyberhoot" {
-    Artis()
-    _, _ = s.ChannelMessageSend(m.ChannelID, Artis())
+    _, _ = s.ChannelMessageSend(m.ChannelID, Artis(cyberhoot.domain, cyberhoot.pattern, cyberhoot.visit))
+  }
+  if m.Content == "~ dark-reader" {
+    _, _ = s.ChannelMessageSend(m.ChannelID, Artis(darkReading.domain, darkReading.pattern, darkReading.visit))
+  }
+  if m.Content == "~ tech-rep" {
+    _, _ = s.ChannelMessageSend(m.ChannelID, Artis(techRep.domain, techRep.pattern, techRep.visit))
   }
 }
 
-func Artis() string{
+func Artis(domain string, pattern string, visit string ) string{
   var link string
   var allLinks[]string
   c := colly.NewCollector()
-  colly.AllowedDomains("cyberhoot.com")
+  colly.AllowedDomains(domain)
   colly.MaxDepth(2)
   colly.Async(true)
   c.OnRequest(func(r *colly.Request) {
 })
-  c.OnHTML(".entry-title", func(e *colly.HTMLElement){
+  c.OnHTML(pattern, func(e *colly.HTMLElement){
     link = e.ChildAttr("a", "href")
     fmt.Println(link)
     allLinks = append(allLinks, link)
- //   link = e.Request.AbsoluteURL(e.Attr("href"))
 })
-  c.Visit("https://cyberhoot.com/category/blog/")
+  c.Visit(visit)
   r := rand.Intn(len(allLinks))
+  //r := rand.Intn(6) + 1
+  fmt.Println(r)
   return allLinks[r]
 }
