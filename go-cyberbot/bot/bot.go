@@ -42,8 +42,8 @@ func messageHandler(s *discordgo.Session, m *discordgo.MessageCreate) {
   cyberhoot.visit = "https://cyberhoot.com/category/blog/"
   darkReading := new(Site)
   darkReading.domain = "www.darkreading.com"
-  darkReading.pattern = ".article-detail"
-  darkReading.visit = "https://www.darkreading.com/"
+  darkReading.pattern = ".article-title"
+  darkReading.visit = "https://www.darkreading.com/attacks-breaches"
   techRep := new(Site)
   techRep.domain = "www.techrepublic.com"
   //techRep.pattern = ".title"
@@ -77,7 +77,13 @@ func Artis(domain string, pattern string, visit string ) string{
   c.OnRequest(func(r *colly.Request) {
 })
   c.OnHTML(pattern, func(e *colly.HTMLElement){
-    link = e.ChildAttr("a", "href")
+    if domain == "www.darkreading.com" {
+      fmt.Println(domain)
+      link = e.Attr("href")
+      fmt.Println(link)
+    }else {
+      link = e.ChildAttr("a", "href")
+    }
     fmt.Println(link)
     allLinks = append(allLinks, link)
 })
