@@ -1,0 +1,12 @@
+[Unit]
+Description=Discord bot used to fetch cybersecurity articles from a few media outlets
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=10
+WorkingDirectory=/home/ubuntu/
+ExecStart=/home/ubuntu/go-bot
